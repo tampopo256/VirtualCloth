@@ -1,5 +1,6 @@
 import cv2
 import sys
+from library import fillInBackground
 
 # 定数定義
 IMG_HEIGHT=int(256)
@@ -26,13 +27,14 @@ while cap.isOpened():
         continue
 
     # srcに対してスーツを着せるなどの加工処理（試しに背景を緑色にしてみる）
-    
+    src=fillInBackground(src,(0,255,0))
 
     # 表示
     cv2.imshow(WINDOW_NAME,src)
+    cv2.moveWindow(WINDOW_NAME,0,0)
 
     # 書き込み
-    dst.write(src)
+    dst.write(cv2.resize(src,(IMG_WIDTH,IMG_HEIGHT)))
 
     # q キーが押されたら停止する
     if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -3,7 +3,9 @@ import numpy as np
 import numpy.typing as npt
 import cv2
 import sys
+import copy
 from library import fetchPathNames
+from library import fillInBackground
 
 # 定数定義
 WINDOW_H=512
@@ -18,11 +20,12 @@ for path_name in path_names:
     window_name=f"Path Name:{path_name}"
     img=cv2.imread(path_name,cv2.IMREAD_COLOR)
     imgs.append(img)
+    img=fillInBackground(copy.deepcopy(img),(0,255,0))
     # 内容確認
     cv2.namedWindow(window_name,cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name,(WINDOW_W,WINDOW_H))
     cv2.moveWindow(window_name,0,0)
-    cv2.imshow(window_name,cv2.imread(path_name,cv2.IMREAD_COLOR))
+    cv2.imshow(window_name,img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
