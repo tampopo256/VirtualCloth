@@ -5,9 +5,10 @@ import numpy as np
 # --- 定数 ---
 CAMERA_INDEX = 1
 SUIT_IMAGE_PATH = 'assets/suit.png'
-SUIT_BASE_WIDTH = 500
-# 肩の中心からスーツ画像の上辺までのオフセット率 (画像の高さに対する割合)
-SUIT_VERTICAL_OFFSET_RATIO = 1 / 3.5
+# スーツ画像内の肩幅を画像幅に対する比率で仮定 (この値を調整して横幅のフィット感を変えられます)
+SUIT_SHOULDER_WIDTH_RATIO = 0.3
+# 肩の中心からスーツ画像の上辺までのオフセット率 (この値を調整して縦位置を変えられます。小さくすると下に移動)
+SUIT_VERTICAL_OFFSET_RATIO = 1 / 4.0
 
 def overlay_png(background_img, foreground_img, pos):
     """
@@ -53,29 +54,39 @@ def draw_suit(frame, landmarks, suit_image, mp_pose):
     if not landmarks:
         return
 
-    h, w, _ = frame.shape
+    height, width, _ = frame.shape
 
-    # 1. 両肩の座標を取得
+    # 両肩の座標を取得
     left_shoulder = landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
     right_shoulder = landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
 
-    # 肩が両方とも検出できた場合のみ処理
     if not (left_shoulder.visibility > 0.5 and right_shoulder.visibility > 0.5):
         return
 
-    # 2. 肩の中心座標を計算
-    lx, ly = int(left_shoulder.x * w), int(left_shoulder.y * h)
-    rx, ry = int(right_shoulder.x * w), int(right_shoulder.y * h)
-    shoulder_center_x = (lx + rx) // 2
-    shoulder_center_y = (ly + ry) // 2
+    # 肩の中心座標と肩幅を計算
+    left_x, left_y = int(left_shoulder.x * width), int(left_shoulder.y * height)
+    right_x, right_y = int(right_shoulder.x * width), int(right_shoulder.y * height)
+    shoulder_center_x = (left_x + right_x) // 2
+    shoulder_center_y = (left_y + right_y) // 2
+    detected_shoulder_width = abs(right_x - left_x)
 
-    # 3. スーツ画像を重ねる位置を計算
-    suit_h, suit_w, _ = suit_image.shape
-    pos_x = shoulder_center_x - (suit_w // 2)
-    pos_y = shoulder_center_y - int(suit_h * SUIT_VERTICAL_OFFSET_RATIO)
+    # スーツ画像のスケーリング
+    original_suit_height, original_suit_width, _ = suit_image.shape  # 変数名を明確に
+    assumed_suit_shoulder_width = original_suit_width * SUIT_SHOULDER_WIDTH_RATIO
+    scale = detected_shoulder_width / assumed_suit_shoulder_width if assumed_suit_shoulder_width > 0 else 1.0
+    new_suit_width = int(original_suit_width * scale)
+    new_suit_height = int(original_suit_height * scale)
+    if new_suit_width <= 0 or new_suit_height <= 0:
+        return
+    scaled_suit = cv2.resize(suit_image, (new_suit_width, new_suit_height))
 
-    # 4. スーツ画像をフレームに重ねる
-    overlay_png(frame, suit_image, (pos_x, pos_y))
+    # スーツ画像を重ねる位置を計算
+    suit_height, suit_width, _ = scaled_suit.shape  # 変数名を明確に
+    pos_x = shoulder_center_x - (suit_width // 2)
+    pos_y = shoulder_center_y - int(suit_height * SUIT_VERTICAL_OFFSET_RATIO)
+
+    # スーツ画像をフレームに重ねる
+    overlay_png(frame, scaled_suit, (pos_x, pos_y))
 
 
 def main():
@@ -84,15 +95,11 @@ def main():
     pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
     mp_drawing = mp.solutions.drawing_utils
 
-    # スーツの画像を読み込み、リサイズ
+    # スーツの画像を読み込み
     suit_img = cv2.imread(SUIT_IMAGE_PATH, cv2.IMREAD_UNCHANGED)
     if suit_img is None:
         print(f"エラー: {SUIT_IMAGE_PATH} が見つかりません。")
         return
-    
-    suit_aspect_ratio = suit_img.shape[0] / suit_img.shape[1]
-    resized_suit_h = int(SUIT_BASE_WIDTH * suit_aspect_ratio)
-    resized_suit = cv2.resize(suit_img, (SUIT_BASE_WIDTH, resized_suit_h))
 
     # カメラを起動
     cap = cv2.VideoCapture(CAMERA_INDEX)
@@ -113,8 +120,8 @@ def main():
         results = pose.process(rgb_frame)
         frame.flags.writeable = True
 
-        # スーツを描画
-        draw_suit(frame, results.pose_landmarks, resized_suit, mp_pose)
+        # スーツを描画 (suit_img を渡すように変更)
+        draw_suit(frame, results.pose_landmarks, suit_img, mp_pose)
 
         # 骨格の描画はコメントアウト中
         # if results.pose_landmarks:
