@@ -244,7 +244,7 @@ class VirtualTryOnApp:
     def stop(self):
         self.stopped=True
         self.thread.join()
-        cv2.destroyAllWindows()
+        self._cleanup()
 
     def _load_images(self):
         """試着用の画像を読み込む"""
@@ -296,9 +296,7 @@ class VirtualTryOnApp:
 
             # 仮想カメラ処理
 
-        
         self.cap.release()
-        # self._cleanup()
 
     def _process_frame(self, frame):
         """フレームを処理してポーズを検出する"""
