@@ -75,40 +75,29 @@ def fillInBackground(src:npt.NDArray,color:tuple[np.uint8])->npt.NDArray:
     return dst
 
 def alphaZeroCut(src:npt.NDArray[np.uint8])->npt.NDArray:
-    # 定数
-    MAX_D=4
-    H,W=src.shape[0:2]
-    vis=[[False for _ in range(W)] for _ in range(H)]
-    # 変数定義
-    min_y,min_x,max_y,max_x=0,0,0,0
-    for y in range(H):
-        for x in range(W):
-            if src[y][x][3]>0 and vis[y][x]==False:
-                # BFSで
-                now=Point(y,x)
-                dy=(-1,0,1,0)
-                dx=(0,1,0,-1)
-                now=Point(0,0)
-                deq=deque();deq.append(now)
-                vis[now.y][now.x]=True
-                min_y=min(y,min_y)
-                min_x=min(x,min_x)
-                max_y=max(y,max_y)
-                max_x=max(x,max_x)
-                while len(deq)>0:
-                    now=deq.popleft()
-                    for i in range(0,MAX_D):
-                        nxt=Point(now.y+dy[i],now.x+dx[i])
-                        if 0<=nxt.y and nxt.y<H and 0<=nxt.x and nxt.x<W and src[nxt.y][nxt.x][3]>0 and vis[nxt.y][nxt.x]==False:
-                            vis[nxt.y][nxt.x]=True
-                            deq.append(nxt)
-                            min_y=min(nxt.y,min_y)
-                            min_x=min(nxt.x,min_x)
-                            max_y=max(nxt.y,max_y)
-                            max_x=max(nxt.x,max_x)
-    print(f"({H}*{W})")
-    print(f"({min_y},{min_x})({max_y},{max_x})")
-    return src[min_y:max_y+1,min_x:max_x+1]
+    """
+    アルファ値∈[0,256) であることに注意
+    """
+    # アルファチャンネルが存在するか確認
+    if src.shape[2] != 4:
+        return src
+    
+    # アルファ値が255となるピクセルの座標を取得
+    # (y座標の配列, x座標の配列) という形で返る
+    y_coords, x_coords = np.where(src[:, :, 3] > 254)
+    
+    # 不透明なピクセルが一つもなければ、空の画像を返す
+    if len(y_coords) == 0:
+        return np.empty((0, 0, 4), dtype=np.uint8)
+    
+    # 座標の最小値と最大値を見つけてバウンディングボックスを決定
+    min_y = y_coords.min()
+    max_y = y_coords.max()
+    min_x = x_coords.min()
+    max_x = x_coords.max()
+    
+    # スライスして結果を返す
+    return src[min_y : max_y + 1, min_x : max_x + 1]
 
 def getHumanSeg(src:npt.NDArray)->npt.NDArray:
     # MediaPipeの描画ユーティリティとセグメンテーションモデルを初期化
