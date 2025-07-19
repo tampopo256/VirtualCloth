@@ -20,11 +20,14 @@ if not cap.isOpened():
 
 dst=cv2.VideoWriter(VIDEO_NAME,FOURCC,FPS,(IMG_WIDTH,IMG_HEIGHT),isColor=True)
 
+save_fig=None
+
 while cap.isOpened():
     ret,src=cap.read()
 
     if not(ret) or src is None:
         continue
+    save_fig=src
 
     # srcに対してスーツを着せるなどの加工処理（試しに背景を緑色にしてみる）
     src=fillInBackground(src,(0,255,0))
@@ -40,6 +43,7 @@ while cap.isOpened():
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+cv2.imwrite("my_image.jpg",save_fig)
 
 # 後処理
 cap.release()
