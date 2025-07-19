@@ -77,3 +77,6 @@ Temporary Items
 *.log 
 
 docs/
+my_env/
+__pycache__
+test.mp4
