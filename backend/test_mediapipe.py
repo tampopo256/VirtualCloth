@@ -100,12 +100,9 @@ for path in fetchPathNames("./../assets"):
     # img=np.zeros(img.shape,np.uint8)
     # cv2.rectangle(img,(10,10),(50,50),(255,255,255,1),cv2.FILLED)
     # cv2.rectangle(img,(60,60),(70,70),(255,255,255,1),cv2.FILLED)
-    # cv2.imshow("original",img)
+    cv2.imshow("original",img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    for c in img[0]:
-        if c[3]>0:
-            print(c)
 
     cv2.imshow("alphaZeroCut",alphaZeroCut(img))
     cv2.waitKey(0)
