@@ -19,12 +19,12 @@ def create_button_label_set(button, label, label2): # 表示管理用
 
 def toggle_icon(checked): # アイコン切り替え用 (服ON/OFF)
     if checked:
-        button_cloth_on_off.setIcon(QIcon("img/suit.png"))
+        button_cloth_on_off.setIcon(QIcon("front/img/suit.png"))
         button_cloth_on_off.setStyleSheet(base_style + button_clicked)
         label_show_status.setText("表示:ON")
         #(ここでbackendと統合)
     else:
-        button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
+        button_cloth_on_off.setIcon(QIcon("front/img/unsuit.png"))
         button_cloth_on_off.setStyleSheet(base_style + button_unclicked)
         label_show_status.setText("表示:OFF")
         #(ここで何もなしに)
@@ -35,15 +35,15 @@ def change_cloth(): # 服切り替え用ボタン
     label_cloth_status.setText(f"現在の服:{clothes[current_cloth_idx]}")
 
 # 基本設定
-app = QApplication(sys.argv)
-app.setStyleSheet("""
+guiapp = QApplication(sys.argv)
+guiapp.setStyleSheet("""
     QLabel {
         color: black; /* 文字色*/
         
     }
 """)
 font = QFont("Meiryo", 14, QFont.Weight.Bold)
-app.setFont(font)
+guiapp.setFont(font)
 window = QWidget()
 window.setWindowTitle("VirtualCloth")
 window.setStyleSheet("background-color: white;")
@@ -53,7 +53,7 @@ window.setFixedSize(500, 500)
 button_cloth_on_off = QToolButton()
 button_cloth_on_off.toggled.connect(toggle_icon)
 button_cloth_on_off.setCheckable(True)
-button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
+button_cloth_on_off.setIcon(QIcon("front/img/unsuit.png"))
 button_cloth_on_off.setIconSize(QSize(150, 150))
 base_style = """
     QToolButton {
@@ -90,7 +90,7 @@ label_show_status = QLabel("表示:OFF")
 # 衣装切り替え用ボタン
 button_change_cloth = QToolButton()
 button_change_cloth.clicked.connect(change_cloth)
-button_change_cloth.setIcon(QIcon("img/change_cloth.png"))
+button_change_cloth.setIcon(QIcon("front/img/change_cloth.png"))
 button_change_cloth.setIconSize(QSize(150, 150))
 button_change_cloth.setStyleSheet("""
     QToolButton {
@@ -178,4 +178,4 @@ window.setLayout(layout)
 window.show()
 
 # ウィンドウ閉じた際の処理 (終了)
-sys.exit(app.exec())
+sys.exit(guiapp.exec())
