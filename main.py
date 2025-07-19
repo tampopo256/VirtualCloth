@@ -181,13 +181,12 @@ window.show()
 app=VirtualTryOnApp()
 
 while True:
-    frame=app.read()
-    if frame is not None:
-        cv2.imshow("main",app.read())
+    if app.ret or (app.frame is not None):
+        cv2.imshow("main",app.frame)
     # 'q'キーで終了
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        app.stop()
         break
-
-app.stop()
+print("1")
 # ウィンドウ閉じた際の処理 (終了)
 sys.exit(guiapp.exec())

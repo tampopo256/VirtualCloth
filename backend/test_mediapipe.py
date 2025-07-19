@@ -97,9 +97,9 @@ def calcArmScale(
 
 for path in fetchPathNames("./assets"):
     img=cv2.imread(path,cv2.IMREAD_UNCHANGED)
-    # cv2.imshow("original",img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    cv2.imshow("original",img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     cv2.imshow("alphaZeroCut",alphaZeroCut(img))
     cv2.waitKey(0)
