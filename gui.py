@@ -3,19 +3,31 @@ from PyQt6.QtWidgets import QApplication, QWidget, QToolButton, QMenu, QHBoxLayo
 from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtCore import Qt, QSize
 
-def create_button_label_set(button, label):
+clothes = ["スーツ","Tシャツ", "上裸"]
+current_cloth_idx = 0
+
+def create_button_label_set(button, label, label2):
     container = QWidget()
     layout = QVBoxLayout(container)
     layout.addWidget(button)
     layout.addWidget(label)
+    layout.addWidget(label2)
     label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    label2.setAlignment(Qt.AlignmentFlag.AlignCenter)
     return container
 
 def toggle_icon(checked):
     if checked:
         button_cloth_on_off.setIcon(QIcon("img/suit.png"))
+        label_show_status.setText("表示:ON")
     else:
         button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
+        label_show_status.setText("表示:OFF")
+
+def change_cloth():
+    global current_cloth_idx
+    current_cloth_idx = (current_cloth_idx + 1) % len(clothes)
+    label_cloth_status.setText(f"現在の服:{clothes[current_cloth_idx]}")
 
 app = QApplication(sys.argv)
 app.setStyleSheet("""
@@ -56,9 +68,11 @@ button_cloth_on_off.setStyleSheet("""
         background-color: #2575f0;     /* ホバー時 */
     }
 """)
-label_cloth_on_off = QLabel("服表示ON/OFF")
+label_cloth_on_off = QLabel("表示切替")
+label_show_status = QLabel("表示:OFF")
 
 button_change_cloth = QToolButton()
+button_change_cloth.clicked.connect(change_cloth)
 button_change_cloth.setIcon(QIcon("img/change_cloth.png"))
 button_change_cloth.setIconSize(QSize(150, 150))
 button_change_cloth.setStyleSheet("""
@@ -78,9 +92,10 @@ button_change_cloth.setStyleSheet("""
 """)
 button_change_cloth.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
 label_change_cloth = QLabel("服切り替え")
+label_cloth_status = QLabel("現在の服:スーツ")
 
-widget1 = create_button_label_set(button_cloth_on_off, label_cloth_on_off)
-widget2 = create_button_label_set(button_change_cloth, label_change_cloth)
+widget1 = create_button_label_set(button_cloth_on_off, label_cloth_on_off, label_show_status)
+widget2 = create_button_label_set(button_change_cloth, label_change_cloth, label_cloth_status)
 
 menu = QMenu()
 menu.addAction("1")
