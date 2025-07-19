@@ -221,7 +221,7 @@ class BodyPartDrawer:
 class VirtualTryOnApp:
     """バーチャル試着アプリケーション"""
     
-    def __init__(self,camera_id=1):
+    def __init__(self):
         """アプリケーションの初期化"""
         self.config = Config()
         self.drawer = BodyPartDrawer()
@@ -236,7 +236,7 @@ class VirtualTryOnApp:
         self.thread = threading.Thread(target=self.run, args=())
         self.thread.daemon = True # メインスレッドが終了したら、このスレッドも終了する
         self.thread.start()
-        print(f"VideoStream thread for camera='{camera_id}' started.")
+        print(f"VideoStream thread for camera='{self.config.CAMERA_INDEX}' started.")
     
     def read(self)->npt.NDArray:
         return self.latest_fig
