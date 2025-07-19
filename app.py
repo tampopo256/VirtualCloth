@@ -123,13 +123,35 @@ class BodyPartDrawer:
         frame_height, frame_width, _ = frame.shape
         start_lm = landmarks.landmark[start_joint]
         end_lm = landmarks.landmark[end_joint]
-
-        if not (start_lm.visibility > 0.5 and end_lm.visibility > 0.5):
-            return
-
+        
+        start_visibility = start_lm.visibility
+        end_visibility = end_lm.visibility
+        
         # 2. 関節のピクセル座標と中心、長さを計算
         start_x, start_y = int(start_lm.x * frame_width), int(start_lm.y * frame_height)
-        end_x, end_y = int(end_lm.x * frame_width), int(end_lm.y * frame_height)
+        
+        if end_visibility > 0.5:
+            end_x, end_y = int(end_lm.x * frame_width), int(end_lm.y * frame_height)
+        else:
+            # 肩幅を計算して最低の腕長さを設定
+            left_shoulder = landmarks.landmark[self.mp_pose.PoseLandmark.LEFT_SHOULDER]
+            right_shoulder = landmarks.landmark[self.mp_pose.PoseLandmark.RIGHT_SHOULDER]
+            if left_shoulder.visibility > 0.5 and right_shoulder.visibility > 0.5:
+                left_shoulder_x = int(left_shoulder.x * frame_width)
+                right_shoulder_x = int(right_shoulder.x * frame_width)
+                detected_shoulder_width = abs(right_shoulder_x - left_shoulder_x)
+                default_length = int(detected_shoulder_width * 1.2)  # 肩幅の1.2倍を最低長さとして保つ
+            else:
+                default_length = frame_height // 5  # 肩が検出できない場合のフォールバック
+            if start_joint == self.mp_pose.PoseLandmark.LEFT_SHOULDER or start_joint == self.mp_pose.PoseLandmark.LEFT_ELBOW:
+                end_x = start_x + 50  # さらに右にオフセット（外側）
+            else:
+                end_x = start_x - 50  # さらに左にオフセット（外側）
+            end_y = start_y + default_length
+        
+        if start_visibility <= 0.5:
+            return  # 開始点が検出できない場合はスキップ
+        
         center_x, center_y = (start_x + end_x) // 2, (start_y + end_y) // 2
         
         limb_length = math.hypot(end_x - start_x, end_y - start_y)
