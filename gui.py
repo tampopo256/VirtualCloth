@@ -1,76 +1,124 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QComboBox, QHBoxLayout, QVBoxLayout, QLabel
-from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QApplication, QWidget, QToolButton, QMenu, QHBoxLayout, QVBoxLayout, QLabel
+from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtCore import Qt, QSize
+
+def create_button_label_set(button, label):
+    container = QWidget()
+    layout = QVBoxLayout(container)
+    layout.addWidget(button)
+    layout.addWidget(label)
+    label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    return container
+
+def toggle_icon(checked):
+    if checked:
+        button_cloth_on_off.setIcon(QIcon("img/suit.png"))
+    else:
+        button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
 
 app = QApplication(sys.argv)
+app.setStyleSheet("""
+    QLabel {
+        color: black; /* 文字色*/
+        
+    }
+""")
+font = QFont("Meiryo", 14, QFont.Weight.Bold)
+app.setFont(font)
+
 
 window = QWidget()
 window.setWindowTitle("VirtualCloth")
 window.setStyleSheet("background-color: white;")
 window.setFixedSize(500, 500)
 
-button1 = QPushButton("服表示ON/OFF")
-button1.setStyleSheet("""
-    QPushButton {
-        background-color: #4CAF50;     /* 背景色 */
+button_cloth_on_off = QToolButton()
+button_cloth_on_off.toggled.connect(toggle_icon)
+button_cloth_on_off.setCheckable(True)
+button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
+button_cloth_on_off.setIconSize(QSize(150, 150))
+button_cloth_on_off.setStyleSheet("""
+    QToolButton {
+        background-color: #1565d0;     /* 背景色 */
         color: white;                  /* 文字色 */
-        border-radius: 10px;           /* 角丸 */
+        border-radius: 55px;           /* 角丸 */
         border: 2px solid #388E3C;     /* 枠線 */
         min-width: 150px; /* ボタンサイズ幅*/
         min-height: 150px; /* ボタンサイズ高さ*/
         max-width: 150px;
         max-height: 150px;
     }
-    QPushButton:hover {
-        background-color: #45a049;     /* ホバー時 */
+    QToolButton:checked {
+        background-color: #0b3cde;
+    }
+    QToolButton:hover {
+        background-color: #2575f0;     /* ホバー時 */
     }
 """)
-button2 = QPushButton("服切り替え")
-button2.setStyleSheet("""
-    QPushButton {
-        background-color: #4CAF50;     /* 背景色 */
-        color: white;                  /* 文字色 */
-        border-radius: 10px;           /* 角丸 */
-        border: 2px solid #388E3C;     /* 枠線 */
-        min-width: 150px; /* ボタンサイズ幅*/
-        min-height: 150px; /* ボタンサイズ高さ*/
-        max-width: 150px;
-        max-height: 150px;
-    }
-    QPushButton:hover {
-        background-color: #45a049;     /* ホバー時 */
-    }
-""")
-label = QLabel("そのほかの設定")
-label.setStyleSheet("color: black; font-size: 14pt;")
-combo = QComboBox()
-combo.setStyleSheet("""
-    QComboBox {
-        background-color: #4CAF50;     /* 背景色 */
-        color: white;                  /* 文字色 */
-        border-radius: 10px;           /* 角丸 */
-        border: 2px solid #388E3C;     /* 枠線 */
-    }
-    QComboBox:hover {
-        background-color: #45a049;     /* ホバー時 */
-    }
-""")
-combo.addItems(["1", "2", "3"])
+label_cloth_on_off = QLabel("服表示ON/OFF")
 
+button_change_cloth = QToolButton()
+button_change_cloth.setIcon(QIcon("img/change_cloth.png"))
+button_change_cloth.setIconSize(QSize(150, 150))
+button_change_cloth.setStyleSheet("""
+    QToolButton {
+        background-color: #1565d0;     /* 背景色 */
+        color: white;                  /* 文字色 */
+        border-radius: 55px;           /* 角丸 */
+        border: 2px solid #388E3C;     /* 枠線 */
+        min-width: 150px; /* ボタンサイズ幅*/
+        min-height: 150px; /* ボタンサイズ高さ*/
+        max-width: 150px;
+        max-height: 150px;
+    }
+    QToolButton:hover {
+        background-color: #2575f0;     /* ホバー時 */
+    }
+""")
+button_change_cloth.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+label_change_cloth = QLabel("服切り替え")
+
+widget1 = create_button_label_set(button_cloth_on_off, label_cloth_on_off)
+widget2 = create_button_label_set(button_change_cloth, label_change_cloth)
+
+menu = QMenu()
+menu.addAction("1")
+menu.addAction("2")
+menu.addAction("3")
+
+button_menu = QToolButton()
+button_menu.setText("その他の設定")
+button_menu.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+button_menu.setMenu(menu)
+button_menu.setStyleSheet("""
+    QToolButton {
+        background-color: #1565d0;     /* 背景色 */
+        color: white;                  /* 文字色 */
+        border-radius: 55px;           /* 角丸 */
+        border: 2px solid #388E3C;     /* 枠線 */
+        min-width: 150px; /* ボタンサイズ幅*/
+        min-height: 30px; /* ボタンサイズ高さ*/
+        max-width: 150px;
+        max-height: 30px;
+    }
+    QToolButton:hover {
+        background-color: #2575f0;     /* ホバー時 */
+    }
+""")
 h_layout = QHBoxLayout()
-h_layout.addWidget(button1)
-h_layout.addWidget(button2)
-h_layout.setSpacing(5) 
+h_layout.addWidget(widget1)
+h_layout.addWidget(widget2)
+h_layout.setSpacing(10) 
+h_layout.setAlignment(Qt.AlignmentFlag.AlignCenter) 
 layout = QVBoxLayout()
+layout.setAlignment(Qt.AlignmentFlag.AlignTop) 
 layout.addLayout(h_layout)
-layout.addWidget(label)
-layout.addWidget(combo)
+layout.setSpacing(60)
 
+layout.addWidget(button_menu, alignment=Qt.AlignmentFlag.AlignCenter)
 window.setLayout(layout)
 window.show()
 
-font = QFont("Meiryo", 12, QFont.Weight.Bold)
-button1.setFont(font)
-button2.setFont(font)
-combo.setFont(font)
+
 sys.exit(app.exec())
