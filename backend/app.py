@@ -2,10 +2,11 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import math
+import pyvirtualcam
 
 class Config:
     """設定値を管理するクラス"""
-    CAMERA_INDEX = 1
+    CAMERA_INDEX = 0
     TORSO_IMAGE_PATH = 'assets/torso.png'
     UPPER_ARM_IMAGE_PATH = 'assets/upper_arm.png'
     FOREARM_IMAGE_PATH = 'assets/forearm.png'
