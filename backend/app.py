@@ -3,6 +3,8 @@ import mediapipe as mp
 import numpy as np
 import math
 import pyvirtualcam
+import numpy.typing as npt
+import threading
 
 class Config:
     """設定値を管理するクラス"""
@@ -219,7 +221,7 @@ class BodyPartDrawer:
 class VirtualTryOnApp:
     """バーチャル試着アプリケーション"""
     
-    def __init__(self):
+    def __init__(self,camera_id=1):
         """アプリケーションの初期化"""
         self.config = Config()
         self.drawer = BodyPartDrawer()
@@ -227,6 +229,21 @@ class VirtualTryOnApp:
         self.pose = self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.cap = cv2.VideoCapture(self.config.CAMERA_INDEX)
         self.images = self._load_images()
+        self.latest_fig=None
+        self.stopped=False
+
+        # スレッドの初期化と開始
+        self.thread = threading.Thread(target=self.run, args=())
+        self.thread.daemon = True # メインスレッドが終了したら、このスレッドも終了する
+        self.thread.start()
+        print(f"VideoStream thread for camera='{camera_id}' started.")
+    
+    def read(self)->npt.NDArray:
+        return self.latest_fig
+    
+    def stop(self):
+        self.stopped=True
+        self.thread.join()
 
     def _load_images(self):
         """試着用の画像を読み込む"""
@@ -264,7 +281,7 @@ class VirtualTryOnApp:
             print("エラー: カメラを開けませんでした。")
             return
 
-        while True:
+        while not self.stopped:
             ret, frame = self.cap.read()
             if not ret:
                 print("エラー: フレームを読み取れませんでした。")
@@ -272,6 +289,9 @@ class VirtualTryOnApp:
 
             results = self._process_frame(frame)
             self._draw_all(frame, results)
+
+            # 最新フレーム更新
+            self.latest_fig=frame
 
             cv2.imshow("Virtual Try-On", frame)
 
