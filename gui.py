@@ -19,9 +19,11 @@ def create_button_label_set(button, label, label2):
 def toggle_icon(checked):
     if checked:
         button_cloth_on_off.setIcon(QIcon("img/suit.png"))
+        button_cloth_on_off.setStyleSheet(base_style + button_clicked)
         label_show_status.setText("表示:ON")
     else:
         button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
+        button_cloth_on_off.setStyleSheet(base_style + button_unclicked)
         label_show_status.setText("表示:OFF")
 
 def change_cloth():
@@ -50,7 +52,7 @@ button_cloth_on_off.toggled.connect(toggle_icon)
 button_cloth_on_off.setCheckable(True)
 button_cloth_on_off.setIcon(QIcon("img/unsuit.png"))
 button_cloth_on_off.setIconSize(QSize(150, 150))
-button_cloth_on_off.setStyleSheet("""
+base_style = """
     QToolButton {
         background-color: #1565d0;     /* 背景色 */
         color: white;                  /* 文字色 */
@@ -62,12 +64,23 @@ button_cloth_on_off.setStyleSheet("""
         max-height: 150px;
     }
     QToolButton:checked {
-        background-color: #0b3cde;
+        background-color: #FFA726;
     }
+"""
+
+button_clicked = """
     QToolButton:hover {
-        background-color: #2575f0;     /* ホバー時 */
+        background-color: #FFB74D;
     }
-""")
+"""
+
+button_unclicked = """
+    QToolButton:hover {
+        background-color: #2575f0;
+    }
+"""
+
+button_cloth_on_off.setStyleSheet(base_style + button_unclicked)
 label_cloth_on_off = QLabel("表示切替")
 label_show_status = QLabel("表示:OFF")
 
@@ -86,6 +99,9 @@ button_change_cloth.setStyleSheet("""
         max-width: 150px;
         max-height: 150px;
     }
+    QToolButton:pressed {
+        background-color: #0b3cde; /* 押している間 */
+    }                 
     QToolButton:hover {
         background-color: #2575f0;     /* ホバー時 */
     }
@@ -98,12 +114,29 @@ widget1 = create_button_label_set(button_cloth_on_off, label_cloth_on_off, label
 widget2 = create_button_label_set(button_change_cloth, label_change_cloth, label_cloth_status)
 
 menu = QMenu()
-menu.addAction("1")
-menu.addAction("2")
-menu.addAction("3")
+menu.addAction("自己画像表示")
+menu.addAction("hoge")
+menu.addAction("fuga")
+menu.addAction("piyo")
+
+menu.setStyleSheet("""
+QMenu {
+    background-color: #444444;      /* 背景色 */
+    color: white;                   /* 文字色 */
+    border: 1px solid #222222;      /* 枠線 */
+    padding: 5px;                   /* 内側の余白 */
+}
+QMenu::item {
+    padding: 5px 20px;
+    background-color: transparent;
+}
+QMenu::item:selected {
+    background-color: #0078d7;     /* 選択中の背景色 */
+}
+""")
 
 button_menu = QToolButton()
-button_menu.setText("その他の設定")
+button_menu.setText("その他の設定 ")
 button_menu.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
 button_menu.setMenu(menu)
 button_menu.setStyleSheet("""
