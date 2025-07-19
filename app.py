@@ -223,8 +223,6 @@ class VirtualTryOnApp:
                 print("エラー: フレームを読み取れませんでした。")
                 break
 
-            # カメラ映像を左右反転して鏡のように見せる
-            frame = cv2.flip(frame, 1)
             results = self._process_frame(frame)
             self._draw_all(frame, results)
 
