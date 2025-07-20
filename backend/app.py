@@ -220,7 +220,6 @@ class BodyPartDrawer:
 
 class VirtualTryOnApp:
     """バーチャル試着アプリケーション"""
-    
     def __init__(self):
         """アプリケーションの初期化"""
         self.config = Config()
@@ -231,6 +230,8 @@ class VirtualTryOnApp:
         self.images = self._load_images()
         self.ret,self.frame=self.cap.read()
         self.stopped=False
+        # 定数
+        self.cloth_state=False
 
         # スレッドの初期化と開始
         self.thread = threading.Thread(target=self.run, args=())
@@ -289,7 +290,8 @@ class VirtualTryOnApp:
                 break
 
             results = self._process_frame(frame)
-            self._draw_all(frame, results)
+            if self.cloth_state:
+                self._draw_all(frame, results)
 
             # 最新フレーム更新
             self.frame=frame
@@ -342,6 +344,10 @@ class VirtualTryOnApp:
             self._draw_separate_body_parts(frame, landmarks)
         else:
             self._draw_composite_body(frame, landmarks)
+    
+    def switchDrawingCloth(self):
+        '''服装の表示状態を反転させる'''
+        self.cloth_state=not(self.cloth_state)
 
     def _cleanup(self):
         """リソースを解放する"""
