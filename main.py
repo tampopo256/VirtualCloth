@@ -189,7 +189,6 @@ widget2 = create_button_label_set(button_change_cloth, label_change_cloth, label
 
 # その他の設定用
 menu = QMenu()
-menu.addAction("自己画像表示")
 menu.addAction("hoge")
 menu.addAction("fuga")
 menu.addAction("piyo")
