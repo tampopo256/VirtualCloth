@@ -8,7 +8,6 @@ import threading
 
 class Config:
     """設定値を管理するクラス"""
-    CAMERA_INDEX = 1
     SHIRT_ASSETS_PATH = 'assets/shirt'
     SUIT_ASSETS_PATH = 'assets/suit'
 
@@ -219,13 +218,14 @@ class BodyPartDrawer:
 
 class VirtualTryOnApp:
     """バーチャル試着アプリケーション"""
-    def __init__(self):
+    def __init__(self,camera_index=0):
         """アプリケーションの初期化"""
+        self.camera_index=camera_index
         self.config = Config()
         self.drawer = BodyPartDrawer()
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
-        self.cap = cv2.VideoCapture(self.config.CAMERA_INDEX)
+        self.cap = cv2.VideoCapture(self.camera_index)
         self.images = self._load_all_assets()
         self.selected_cloth = 'shirt' # デフォルトの衣装
         self.ret,self.frame=self.cap.read()
@@ -237,7 +237,7 @@ class VirtualTryOnApp:
         self.thread = threading.Thread(target=self.run, args=())
         self.thread.daemon = True # メインスレッドが終了したら、このスレッドも終了する
         self.thread.start()
-        print(f"VideoStream thread for camera='{self.config.CAMERA_INDEX}' started.")
+        print(f"VideoStream thread for camera='{self.camera_index}' started.")
     
     def read(self)->npt.NDArray:
         return self.frame
