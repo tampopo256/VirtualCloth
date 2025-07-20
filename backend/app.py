@@ -5,6 +5,7 @@ import math
 import pyvirtualcam
 import numpy.typing as npt
 import threading
+from backend.library import alphaZeroCut
 
 class Config:
     """設定値を管理するクラス"""
@@ -20,7 +21,7 @@ class Config:
     ROTATION_MARGIN_RATIO = 1.4  # 回転時に画像がはみ出さないように確保する余白の比率
     UPPER_ARM_SCALE_FACTOR = 1.5  # 上腕画像の拡大率
     FOREARM_SCALE_FACTOR = 1.2  # 前腕画像の拡大率
-    FULLBODY_SCALE_FACTOR = 1.3 # fullbody画像の拡大率
+    FULLBODY_SCALE_FACTOR = 0.7 # fullbody画像の拡大率
     MIN_VISIBILITY_THRESHOLD = 0.5 # 関節の信頼度スコアの閾値(どれくらいはっきり検出できるか)
     # 腕の描画に関するパラメータ
     LIMB_DEFAULT_LENGTH_SHOULDER_WIDTH_RATIO = 1.2 # 肩幅に対する腕のデフォルト長の比率
@@ -108,29 +109,36 @@ class BodyPartDrawer:
         detected_shoulder_width = abs(right_shoulder_x - left_shoulder_x)
         angle = math.degrees(math.atan2(left_shoulder_y - right_shoulder_y, left_shoulder_x - right_shoulder_x))
 
-        # 3. ボディ画像のサイズを肩幅に合わせてスケーリング
+        # 旧3. ボディ画像のサイズを肩幅に合わせてスケーリング
         original_suit_height, original_suit_width, _ = body_image.shape
-        assumed_suit_shoulder_width = original_suit_width * Config.SUIT_SHOULDER_WIDTH_RATIO
-        scale = detected_shoulder_width / assumed_suit_shoulder_width if assumed_suit_shoulder_width > 0 else 1.0
-        scale *= scale_factor
+        # assumed_suit_shoulder_width = original_suit_width * Config.SUIT_SHOULDER_WIDTH_RATIO
+        # scale = detected_shoulder_width / assumed_suit_shoulder_width if assumed_suit_shoulder_width > 0 else 1.0
+        # scale *= scale_factor
         
-        new_suit_width = int(original_suit_width * scale)
-        new_suit_height = int(original_suit_height * scale)
-        if new_suit_width <= 0 or new_suit_height <= 0:
-            return
-        scaled_suit = cv2.resize(body_image, (new_suit_width, new_suit_height))
+        # new_suit_width = int(original_suit_width * scale)
+        # new_suit_height = int(original_suit_height * scale)
+        # if new_suit_width <= 0 or new_suit_height <= 0:
+        #     return
+        # scaled_suit = cv2.resize(body_image, (new_suit_width, new_suit_height))
 
-        # 4. ボディ画像を肩の傾きに合わせて回転
-        rotation_center = (new_suit_width // 2, int(new_suit_height * Config.SUIT_SHOULDER_LINE_RATIO))
-        rotated_suit = self._rotate_image(scaled_suit, angle, rotation_center, Config.ROTATION_MARGIN_RATIO)
-        
-        # カメラ映像は鏡像なので、それに合わせて画像を左右反転
+        # 旧4. ボディ画像を肩の傾きに合わせて回転
+        # rotation_center = (new_suit_width // 2, int(new_suit_height * Config.SUIT_SHOULDER_LINE_RATIO))
+        # rotated_suit = self._rotate_image(scaled_suit, angle, rotation_center, Config.ROTATION_MARGIN_RATIO)
+
+        # 3. ボディ画像を肩の傾きに合わせて回転
+        rotation_center = (original_suit_width // 2, int(original_suit_height * Config.SUIT_SHOULDER_LINE_RATIO))
+        rotated_suit = self._rotate_image(body_image, angle, rotation_center, Config.ROTATION_MARGIN_RATIO)
+
+        # 4. カメラ映像は鏡像なので、それに合わせて画像を左右反転
         rotated_suit = cv2.flip(rotated_suit, 1)
 
-        # 5. ボディ画像を重ねる最終位置を計算
-        rotated_canvas_height, rotated_canvas_width, _ = rotated_suit.shape
+        # 5. 透明部分を削除
+        trimmed_suit = alphaZeroCut(rotated_suit)
+
+        # 6. ボディ画像を重ねる最終位置を計算
+        rotated_canvas_height, rotated_canvas_width, _ = trimmed_suit.shape
         pos_x = shoulder_center_x - (rotated_canvas_width // 2)
-        upward_shift = int(new_suit_height * Config.SUIT_UPWARD_SHIFT_RATIO)
+        upward_shift = int(trimmed_suit.shape[0] * Config.SUIT_UPWARD_SHIFT_RATIO)
         pos_y = shoulder_center_y - (rotated_canvas_height // 2) - upward_shift
         self._overlay_png(frame, rotated_suit, (pos_x, pos_y))
 
