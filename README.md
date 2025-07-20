@@ -16,16 +16,19 @@
 
 ## 実行方法
 1. ライブラリのインストール
+
 以下のコマンドにより、実行に必要なライブラリがインストールされます。
 ```
 pip install -r ./requirements.txt
 ```
 2. OBS、ZOOMのインストール
+
 下記リンクから、必要なアプリケーションをダウンロードしてください。
 * [OBS Studio](https://obsproject.com/ja/download)
 * [Zoom](https://zoom.us/ja/download)
 
 3. メインプログラムを実行
+
 以下のコマンドを実行し、メインプログラムを実行します。
 ```
 py main.py
@@ -39,6 +42,7 @@ py main.py
     1. ミーティングに参加する際のカメラ設定にて、"OBS Virtual Camera"を選択する
     2. カメラの撮影範囲の調整は、OBSにて行う
 6. カメラ撮影の終了
+
 "Virtual Cloth"ウィンドウの"×"ボタンを押す
 
 ## 技術スタック
