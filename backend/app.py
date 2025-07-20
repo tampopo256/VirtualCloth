@@ -287,8 +287,9 @@ class VirtualTryOnApp:
             if not(ret) or frame is None:
                 print("エラー: フレームを読み取れませんでした。")
                 break
-
+            # 1フレームに対する姿勢推定等
             results = self._process_frame(frame)
+            # スーツの描画（GUIとユーザー間のやり取りで，呼び出したり呼び出さなかったりする）
             self._draw_all(frame, results)
 
             # 最新フレーム更新

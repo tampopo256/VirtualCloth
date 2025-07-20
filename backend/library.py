@@ -39,7 +39,9 @@ class Point:
         self.x=tmp_x*(1 if self.x>0 else -1)
 
 def fetchPathNames(root:str,EXTENTIONS:tuple[str]=("png","jpg"))->list[npt.NDArray]:
-    # 指定したディレクトリ内の，拡張子EXTENTIONSを持つ全ファイルの"rootを根とする絶対パス名"を取得
+    '''
+    指定したディレクトリ内の，拡張子EXTENTIONSを持つ全ファイルの"引数rootを根とする絶対パス名"を取得
+    '''
     paths=[]
     for name in os.listdir(root):
         if os.path.isdir(os.path.join(root,name)):
@@ -51,6 +53,9 @@ def fetchPathNames(root:str,EXTENTIONS:tuple[str]=("png","jpg"))->list[npt.NDArr
     return paths
 
 def fillInBackground(src:npt.NDArray,color:tuple[np.uint8])->npt.NDArray:
+    '''
+    指定した色で背景を塗りつぶす
+    '''
     # MediaPipeの描画ユーティリティとセグメンテーションモデルを初期化
     mp_drawing=mp.solutions.drawing_utils
     mp_selfie_segmentation=mp.solutions.selfie_segmentation
@@ -76,6 +81,7 @@ def fillInBackground(src:npt.NDArray,color:tuple[np.uint8])->npt.NDArray:
 
 def alphaZeroCut(src:npt.NDArray[np.uint8])->npt.NDArray:
     """
+    アルファ値が255でない部分を削除する
     アルファ値∈[0,256) であることに注意
     """
     # アルファチャンネルが存在するか確認
@@ -100,6 +106,9 @@ def alphaZeroCut(src:npt.NDArray[np.uint8])->npt.NDArray:
     return src[min_y : max_y + 1, min_x : max_x + 1]
 
 def getHumanSeg(src:npt.NDArray)->npt.NDArray:
+    '''
+    人が存在する箇所を表す2値画像を返す
+    '''
     # MediaPipeの描画ユーティリティとセグメンテーションモデルを初期化
     mp_drawing=mp.solutions.drawing_utils
     mp_selfie_segmentation=mp.solutions.selfie_segmentation
@@ -114,7 +123,7 @@ def getHumanSeg(src:npt.NDArray)->npt.NDArray:
         results=selfie_segmentation.process(src)
         # 色をRGBからBGRに戻す
         src=cv2.cvtColor(src, cv2.COLOR_RGB2BGR)
-        # セグメンテーションマスクを生成 (人物が255, 背景が0 となる二値画像)
+        # セグメンテーションマスクを生成 (人物が255, 背景が0 となる2値画像)
         condition = (results.segmentation_mask > 0.1).astype(np.uint8) * 255
 
     return cv2.flip(condition,1)
