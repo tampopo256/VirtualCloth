@@ -91,7 +91,7 @@ label_show_status = QLabel("表示:OFF")
 # 衣装切り替え用ボタン
 button_change_cloth = QToolButton()
 button_change_cloth.clicked.connect(change_cloth)
-button_change_cloth.setIcon(QIcon("img/change_cloth.png"))
+button_change_cloth.setIcon(QIcon("front/img/change_cloth.png"))
 button_change_cloth.setIconSize(QSize(150, 150))
 button_change_cloth.setStyleSheet("""
     QToolButton {
@@ -181,13 +181,12 @@ window.show()
 app=VirtualTryOnApp()
 
 while True:
-    frame=app.read()
-    if frame is not None:
-        cv2.imshow("main",app.read())
+    if app.ret or (app.frame is not None):
+        cv2.imshow("main",app.frame)
     # 'q'キーで終了
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        app.stop()
         break
-
-app.stop()
+print("1")
 # ウィンドウ閉じた際の処理 (終了)
 sys.exit(guiapp.exec())

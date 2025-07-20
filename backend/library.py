@@ -83,7 +83,6 @@ def alphaZeroCut(src:npt.NDArray[np.uint8])->npt.NDArray:
     min_y,min_x,max_y,max_x=0,0,0,0
     for y in range(H):
         for x in range(W):
-            print(f"({y},{x}):{src[y][x][3]>0}")
             if src[y][x][3]>0 and vis[y][x]==False:
                 # BFSで
                 now=Point(y,x)
@@ -108,7 +107,7 @@ def alphaZeroCut(src:npt.NDArray[np.uint8])->npt.NDArray:
                             max_y=max(nxt.y,max_y)
                             max_x=max(nxt.x,max_x)
     print(f"({H}*{W})")
-    print(f"({min_y},{max_y})({min_x},{max_x})")
+    print(f"({min_y},{min_x})({max_y},{max_x})")
     return src[min_y:max_y+1,min_x:max_x+1]
 
 def getHumanSeg(src:npt.NDArray)->npt.NDArray:

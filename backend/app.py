@@ -221,7 +221,7 @@ class BodyPartDrawer:
 class VirtualTryOnApp:
     """バーチャル試着アプリケーション"""
     
-    def __init__(self,camera_id=1):
+    def __init__(self):
         """アプリケーションの初期化"""
         self.config = Config()
         self.drawer = BodyPartDrawer()
@@ -229,21 +229,22 @@ class VirtualTryOnApp:
         self.pose = self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.cap = cv2.VideoCapture(self.config.CAMERA_INDEX)
         self.images = self._load_images()
-        self.latest_fig=None
+        self.ret,self.frame=self.cap.read()
         self.stopped=False
 
         # スレッドの初期化と開始
         self.thread = threading.Thread(target=self.run, args=())
         self.thread.daemon = True # メインスレッドが終了したら、このスレッドも終了する
         self.thread.start()
-        print(f"VideoStream thread for camera='{camera_id}' started.")
+        print(f"VideoStream thread for camera='{self.config.CAMERA_INDEX}' started.")
     
     def read(self)->npt.NDArray:
-        return self.latest_fig
+        return self.frame
     
     def stop(self):
         self.stopped=True
         self.thread.join()
+        self._cleanup()
 
     def _load_images(self):
         """試着用の画像を読み込む"""
@@ -283,7 +284,7 @@ class VirtualTryOnApp:
 
         while not self.stopped:
             ret, frame = self.cap.read()
-            if not ret:
+            if not(ret) or frame is None:
                 print("エラー: フレームを読み取れませんでした。")
                 break
 
@@ -291,15 +292,11 @@ class VirtualTryOnApp:
             self._draw_all(frame, results)
 
             # 最新フレーム更新
-            self.latest_fig=frame
+            self.frame=frame
 
-            cv2.imshow("Virtual Try-On", frame)
+            # 仮想カメラ処理
 
-            # 'q'キーで終了
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        
-        self._cleanup()
+        self.cap.release()
 
     def _process_frame(self, frame):
         """フレームを処理してポーズを検出する"""
@@ -352,10 +349,10 @@ class VirtualTryOnApp:
         self.cap.release()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    try:
-        app = VirtualTryOnApp()
-        app.run()
-    except (IOError, cv2.error) as e:
-        # 画像の読み込み失敗やカメラ関連のエラーを捕捉
-        print(f"アプリケーションの実行中にエラーが発生しました: {e}")
+# if __name__ == "__main__":
+#     try:
+#         app = VirtualTryOnApp()
+#         app.run()
+#     except (IOError, cv2.error) as e:
+#         # 画像の読み込み失敗やカメラ関連のエラーを捕捉
+#         print(f"アプリケーションの実行中にエラーが発生しました: {e}")
