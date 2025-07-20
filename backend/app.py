@@ -8,11 +8,10 @@ import threading
 
 class Config:
     """設定値を管理するクラス"""
-    CAMERA_INDEX = 0
-    TORSO_IMAGE_PATH = 'assets/torso.png'
-    UPPER_ARM_IMAGE_PATH = 'assets/upper_arm.png'
-    FOREARM_IMAGE_PATH = 'assets/forearm.png'
-    FULLBODY_IMAGE_PATH = 'assets/fullbody.png'
+    CAMERA_INDEX = 1
+    SHIRT_ASSETS_PATH = 'assets/shirt'
+    SUIT_ASSETS_PATH = 'assets/suit'
+
     # 描画パラメータ
     SUIT_SHOULDER_WIDTH_RATIO = 0.8  # 画像内の肩幅の比率 (1.0に近い値で肩にフィット)
     SUIT_SHOULDER_LINE_RATIO = 0.1  # 回転中心のY座標の比率 (画像の上辺から何%の位置か)
@@ -228,7 +227,8 @@ class VirtualTryOnApp:
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.cap = cv2.VideoCapture(self.config.CAMERA_INDEX)
-        self.images = self._load_images()
+        self.images = self._load_all_assets()
+        self.selected_cloth = 'shirt' # デフォルトの衣装
         self.ret,self.frame=self.cap.read()
         self.stopped=False
 
@@ -246,24 +246,42 @@ class VirtualTryOnApp:
         self.thread.join()
         self._cleanup()
 
-    def _load_images(self):
-        """試着用の画像を読み込む"""
-        images_to_load = {
-            "torso": {"path": self.config.TORSO_IMAGE_PATH, "flip": False},
-            "upper_arm": {"path": self.config.UPPER_ARM_IMAGE_PATH, "flip": True},
-            "forearm": {"path": self.config.FOREARM_IMAGE_PATH, "flip": True},
-            "fullbody": {"path": self.config.FULLBODY_IMAGE_PATH, "flip": False},
+    def _load_all_assets(self):
+        """すべての衣装アセットを読み込む"""
+        assets = {
+            'shirt': self.config.SHIRT_ASSETS_PATH,
+            'suit': self.config.SUIT_ASSETS_PATH,
+        }
+        
+        all_images = {}
+        for cloth_name, path in assets.items():
+            all_images[cloth_name] = self._load_images_from_path(path)
+            
+        return all_images
+
+    def _load_images_from_path(self, path):
+        """指定されたパスから衣装画像を読み込む"""
+        image_names = {
+            "fullbody": "0.png",
+            "torso": "1.png",
+            "upper_arm": "2.png",
+            "forearm": "3.png",
         }
         
         loaded_images = {}
-        for name, info in images_to_load.items():
-            img = self._load_rgba_image(info["path"])
+        for name, filename in image_names.items():
+            image_path = f"{path}/{filename}"
+            img = self._load_rgba_image(image_path)
             if img is None:
-                raise IOError(f"画像の読み込みに失敗しました: {info['path']}")
+                raise IOError(f"画像の読み込みに失敗しました: {image_path}")
+            
             loaded_images[name] = img
-            if info["flip"]:
+            # 腕のパーツは左右反転したバージョンも用意する
+            if name in ["upper_arm", "forearm"]:
                 loaded_images[f"flipped_{name}"] = cv2.flip(img, 1)
+
         return loaded_images
+
 
     def _load_rgba_image(self, path):
         """アルファチャンネル付きの画像を読み込む。なければエラーを出力する。"""
@@ -315,21 +333,24 @@ class VirtualTryOnApp:
 
     def _draw_separate_body_parts(self, frame, landmarks):
         """腕と胴体を個別のパーツとして描画する"""
+        cloth_images = self.images[self.selected_cloth]
+        
         # 描画順序: 奥側(末端)から手前(中心)へ描画することで、正しい重なり順にする
         # 1. 前腕
-        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.LEFT_ELBOW, self.mp_pose.PoseLandmark.LEFT_WRIST, self.images["forearm"], scale_factor=self.config.FOREARM_SCALE_FACTOR)
-        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.RIGHT_ELBOW, self.mp_pose.PoseLandmark.RIGHT_WRIST, self.images["flipped_forearm"], scale_factor=self.config.FOREARM_SCALE_FACTOR)
+        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.LEFT_ELBOW, self.mp_pose.PoseLandmark.LEFT_WRIST, cloth_images["forearm"], scale_factor=self.config.FOREARM_SCALE_FACTOR)
+        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.RIGHT_ELBOW, self.mp_pose.PoseLandmark.RIGHT_WRIST, cloth_images["flipped_forearm"], scale_factor=self.config.FOREARM_SCALE_FACTOR)
 
         # 2. 上腕
-        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.LEFT_SHOULDER, self.mp_pose.PoseLandmark.LEFT_ELBOW, self.images["upper_arm"], scale_factor=self.config.UPPER_ARM_SCALE_FACTOR)
-        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.RIGHT_SHOULDER, self.mp_pose.PoseLandmark.RIGHT_ELBOW, self.images["flipped_upper_arm"], scale_factor=self.config.UPPER_ARM_SCALE_FACTOR)
+        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.LEFT_SHOULDER, self.mp_pose.PoseLandmark.LEFT_ELBOW, cloth_images["upper_arm"], scale_factor=self.config.UPPER_ARM_SCALE_FACTOR)
+        self.drawer.draw_limb(frame, landmarks, self.mp_pose.PoseLandmark.RIGHT_SHOULDER, self.mp_pose.PoseLandmark.RIGHT_ELBOW, cloth_images["flipped_upper_arm"], scale_factor=self.config.UPPER_ARM_SCALE_FACTOR)
         
         # 3. 胴体
-        self.drawer.draw_torso(frame, landmarks, self.images["torso"])
+        self.drawer.draw_torso(frame, landmarks, cloth_images["torso"])
 
     def _draw_composite_body(self, frame, landmarks):
         """腕を組んだ合成画像を描画する"""
-        self.drawer.draw_torso(frame, landmarks, self.images["fullbody"], scale_factor=self.config.FULLBODY_SCALE_FACTOR)
+        cloth_images = self.images[self.selected_cloth]
+        self.drawer.draw_torso(frame, landmarks, cloth_images["fullbody"], scale_factor=self.config.FULLBODY_SCALE_FACTOR)
 
     def _draw_all(self, frame, results):
         """すべてのパーツを描画する"""
