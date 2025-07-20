@@ -365,6 +365,14 @@ class VirtualTryOnApp:
             self._draw_separate_body_parts(frame, landmarks)
         else:
             self._draw_composite_body(frame, landmarks)
+
+    def changeCloth(self, cloth_name):
+        """試着する衣装を切り替える"""
+        if cloth_name in self.images:
+            self.selected_cloth = cloth_name
+            print(f"衣装を {cloth_name} に切り替えました。")
+        else:
+            print(f"エラー: 衣装 '{cloth_name}' が見つかりません。利用可能な衣装: {list(self.images.keys())}")
     
     def switchDrawingCloth(self):
         '''服装の表示状態を反転させる'''
