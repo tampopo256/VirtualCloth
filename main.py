@@ -6,7 +6,7 @@ from backend.app import VirtualTryOnApp
 import cv2
 import threading
 
-clothes = ["スーツ", "Tシャツ"]
+clothes = ["スーツ", "カッターシャツ"]
 clothes_name = ["suit", "shirt"]
 current_cloth_idx = 0
 processing_thread = None
