@@ -17,10 +17,12 @@ app_backend = None
 
 display_timer = QTimer()
 
-def run_processing_thread():
+camera_id = 0
+
+def run_processing_thread(camera):
     global app_backend, latest_frame
     try:
-        app_backend = VirtualTryOnApp()
+        app_backend = VirtualTryOnApp(camera)
         app_backend.switchDrawingCloth  # ← 初期状態でスーツ非表示
 
         while not stop_event.is_set():
@@ -83,9 +85,46 @@ def change_cloth():
 def start_processing():
     global processing_thread
     stop_event.clear()
-    processing_thread = threading.Thread(target=run_processing_thread, daemon=True)
+    processing_thread = threading.Thread(target=run_processing_thread, args=(camera_id,), daemon=True)
     processing_thread.start()
     display_timer.start(33)
+
+def change_camera_id():
+    global camera_id, app_backend, processing_thread
+    camera_id = (camera_id + 1) % 2
+    camera_action.setText(f"カメラID : {camera_id}")
+    stop_event.set()
+    if processing_thread is not None:
+        print("[INFO] 前のスレッド終了待機中...")
+    try:
+        processing_thread.join(timeout=3.0)
+    except Exception as e:
+        print(f"[ERROR] スレッド終了待ち中に例外: {e}")
+    finally:
+        processing_thread = None
+
+    # 3. app_backend を安全に停止
+    try:
+        if app_backend:
+            print("[INFO] app_backend.stop() を呼び出し中")
+            app_backend.stop()
+    except Exception as e:
+        print(f"[WARN] stop() 実行中に例外: {e}")
+    finally:
+        app_backend = None
+
+    # 4. OpenCV ウィンドウを安全に閉じる
+    try:
+        cv2.destroyAllWindows()
+    except Exception as e:
+        print(f"[WARN] OpenCVウィンドウ終了で例外: {e}")
+
+    # 5. 少し待つことでリソース競合を回避
+    import time
+    time.sleep(0.3)
+
+    # 6. 新しいカメラで処理再開
+    start_processing()
 
 # GUI setup
 guiapp = QApplication(sys.argv)
@@ -170,7 +209,7 @@ widget2 = create_button_label_set(button_change_cloth, label_change_cloth, label
 
 # メニュー
 menu = QMenu()
-menu.addAction("hoge")
+camera_action = menu.addAction(f"カメラID : {camera_id}", change_camera_id)
 menu.addAction("fuga")
 menu.addAction("piyo")
 menu.setStyleSheet("""
