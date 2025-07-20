@@ -95,11 +95,14 @@ def calcArmScale(
     print(f"{human_sg.shape=}")
     return 0.0
 
-for path in fetchPathNames("./assets"):
+for path in fetchPathNames("./../assets"):
     img=cv2.imread(path,cv2.IMREAD_UNCHANGED)
-    # cv2.imshow("original",img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    # img=np.zeros(img.shape,np.uint8)
+    # cv2.rectangle(img,(10,10),(50,50),(255,255,255,1),cv2.FILLED)
+    # cv2.rectangle(img,(60,60),(70,70),(255,255,255,1),cv2.FILLED)
+    cv2.imshow("original",img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     cv2.imshow("alphaZeroCut",alphaZeroCut(img))
     cv2.waitKey(0)
