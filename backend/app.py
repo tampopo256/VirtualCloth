@@ -2,12 +2,13 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import math
-import pyvirtualcam
+# import pyvirtualcam
 import numpy.typing as npt
 import threading
 
 class Config:
     """設定値を管理するクラス"""
+    CAMERA_INDEX = 0
     SHIRT_ASSETS_PATH = 'assets/shirt'
     SUIT_ASSETS_PATH = 'assets/suit'
 
@@ -227,7 +228,7 @@ class VirtualTryOnApp:
         self.pose = self.mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
         self.cap = cv2.VideoCapture(self.camera_index)
         self.images = self._load_all_assets()
-        self.selected_cloth = 'shirt' # デフォルトの衣装
+        self.selected_cloth = 'suit' # デフォルトの衣装
         self.ret,self.frame=self.cap.read()
         self.stopped=False
         # 定数
@@ -250,8 +251,8 @@ class VirtualTryOnApp:
     def _load_all_assets(self):
         """すべての衣装アセットを読み込む"""
         assets = {
-            'shirt': self.config.SHIRT_ASSETS_PATH,
             'suit': self.config.SUIT_ASSETS_PATH,
+            'shirt': self.config.SHIRT_ASSETS_PATH,
         }
         
         all_images = {}
