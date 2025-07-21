@@ -1,6 +1,6 @@
 # VirtualCloth
 
-![Image](https://github.com/user-attachments/assets/7866aff7-9c63-4591-851e-08a02b9048a8)
+![DemoGIF](https://github.com/user-attachments/assets/7866aff7-9c63-4591-851e-08a02b9048a8)
 
 ## アプリケーションの概要
 **ZOOM のために、スーツ着るのめんどくさくないですか？**
